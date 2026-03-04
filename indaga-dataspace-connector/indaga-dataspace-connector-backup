@@ -1,0 +1,10 @@
+#!/bin/bash
+
+### Config folders
+/opt/.backups/backup.sh indaga-dataspace-connector-auth-config -i /opt/indaga-auth -n 5 -o /opt/.backups
+/opt/.backups/backup.sh indaga-dataspace-connector-config -i /opt/indaga-dataspace-connector -n 5 -o /opt/.backups
+
+### Docker Volumes
+/opt/.backups/backup.sh indaga_connector_postgresql_data -v pg_connector_data -n 5 -o /opt/.backups
+/opt/.backups/backup.sh indaga_connector_minio_config -v s3_connector_config -n 5 -o /opt/.backups
+/opt/.backups/backup.sh indaga_connector_minio_data -v s3_connector_data -n 5 -o /opt/.backups

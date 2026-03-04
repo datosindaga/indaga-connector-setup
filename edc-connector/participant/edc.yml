@@ -1,0 +1,92 @@
+services:
+  postgres:
+    container_name: ${COMPOSE_PROJECT_NAME}_postgres
+    image: ${POSTGRES_IMAGE}
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
+  identity-hub:
+    container_name: ${COMPOSE_PROJECT_NAME}_identity-hub
+    image: ${IDENTITY_HUB_IMAGE}
+    restart: always
+    depends_on:
+      postgres:
+        condition: service_healthy
+    env_file:
+      - ./env/rendered/ih.env
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:7080/api/check/liveness"]
+      interval: 10s
+      timeout: 30s
+      retries: 10
+      start_period: 30s
+    extra_hosts:
+      - host.docker.internal:host-gateway
+  controlplane:
+    container_name: ${COMPOSE_PROJECT_NAME}_controlplane
+    image: ${CONTROLPLANE_IMAGE}
+    restart: always
+    depends_on:
+      - postgres
+      - identity-hub
+    env_file:
+      - ./env/rendered/cp.env
+    volumes:
+      - ./config/participants.json:/etc/participants/participants.json
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:7060/api/check/liveness"]
+      interval: 10s
+      timeout: 30s
+      retries: 10
+      start_period: 30s
+    extra_hosts:
+      - host.docker.internal:host-gateway
+  dataplane:  
+    container_name: ${COMPOSE_PROJECT_NAME}_dataplane
+    image: ${DATAPLANE_IMAGE}
+    restart: always
+    depends_on:
+      - postgres
+      - controlplane
+      - identity-hub
+    env_file:
+      - ./env/rendered/dp.env
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:7050/api/check/liveness"]
+      interval: 10s
+      timeout: 30s
+      retries: 10
+      start_period: 30s
+    extra_hosts:
+      - host.docker.internal:host-gateway
+  nginx:
+    container_name: ${COMPOSE_PROJECT_NAME}_nginx
+    image: ${NGINX_IMAGE}
+    restart: always
+    depends_on:
+      - controlplane
+      - identity-hub
+      - dataplane
+    ports:
+      - "${NGINX_HTTP_HOST_PORT}:8080"
+      - "${NGINX_HTTPS_HOST_PORT}:8443"
+    volumes:
+      - ./nginx/rendered/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./nginx/certs:/etc/nginx/certs:ro
+
+volumes:
+  postgres-data:
+
+networks:
+  default:
+    name: ${COMPOSE_PROJECT_NAME}_edc-net

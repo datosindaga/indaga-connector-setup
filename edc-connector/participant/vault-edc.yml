@@ -1,0 +1,78 @@
+services:
+  vault:
+    container_name: ${COMPOSE_PROJECT_NAME}_vault
+    image: ${VAULT_IMAGE}
+    environment:
+      VAULT_ADDR: http://0.0.0.0:8200
+      VAULT_API_ADDR: http://0.0.0.0:8200
+    volumes:
+      - vault-data:/vault/file:rw
+      - ./config/vault-config.json:/vault/config/config.json:ro
+    cap_add:
+      - IPC_LOCK
+    entrypoint: "vault server -config=/vault/config/config.json"
+    extra_hosts:
+      - host.docker.internal:host-gateway
+  vault-init:
+    container_name: ${COMPOSE_PROJECT_NAME}_vault-init
+    image: ${VAULT_IMAGE}
+    volumes:
+      - ./config/vault-data.json:/vault-data.json:rw
+      - ./config/vault-edc-token.json:/vault-edc-token.json:rw
+    depends_on:
+      - vault
+    restart: "no"
+    entrypoint: >
+      sh -c '
+        set -e;
+        sleep 10; 
+        export VAULT_ADDR="http://vault:8200";
+        if echo $(vault status 2>/dev/null || true) | grep -q "Initialized.*false"; then
+          echo "Vault is not initialized, attempting to initialized...";
+          vault operator init -key-shares=1 -key-threshold=1 -format=json > /vault-data.json;
+          vault operator unseal $(grep -A 1 unseal_keys_b64 /vault-data.json | tail -1 | tr -d " \",");
+        else
+          echo "Vault is initialized.";
+        fi;
+        vault login $(grep root_token /vault-data.json | cut -d\" -f4);
+        ## Check if kv secret engine is enabled
+        vault token create -policy=root -renewable=true -display-name=edc-identityhub -format=json > /vault-edc-token.json;
+        if ! vault secrets list | grep -q '^secret/'; then
+          echo "Enabling KV secret engine at path 'secret/'...";
+          vault secrets enable -path=secret kv-v2;
+        else
+          echo "KV secret engine already enabled at path 'secret/'.";
+        fi;
+        '
+    extra_hosts:
+      - host.docker.internal:host-gateway
+  vault-autounseal:
+    container_name: ${COMPOSE_PROJECT_NAME}_vault-autounseal
+    image: ${VAULT_IMAGE}
+    volumes:
+      - ./config/vault-data.json:/vault-data.json:ro
+    depends_on:
+      - vault
+    restart: "always"
+    entrypoint: >
+      sh -c '
+        set -e;
+        sleep 10; 
+        export VAULT_ADDR="http://vault:8200";
+        while true; do
+          if echo $(vault status 2>/dev/null || true) | grep -q "Sealed.*true"; then
+            echo "Vault is sealed, attempting to unseal...";
+            vault operator unseal $(grep -A 1 unseal_keys_b64 /vault-data.json | tail -1 | tr -d " \",");
+          else
+            echo "Vault is unsealed.";
+          fi;
+          sleep 60;
+        done'
+    extra_hosts:
+      - host.docker.internal:host-gateway
+volumes:
+  vault-data:
+
+networks:
+  default:
+    name: ${COMPOSE_PROJECT_NAME}_edc-net

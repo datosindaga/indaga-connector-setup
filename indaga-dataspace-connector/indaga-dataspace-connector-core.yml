@@ -1,0 +1,25 @@
+version: '3.8'
+name: indaga-core
+services:
+  auth:
+    restart: always
+    image: "registry.itg.es/flythings-stack/flythings-oauth/api-flythings-oauth:latest"
+    pull_policy: always
+    ports:
+      - "8080:8080"
+    volumes:
+      - /opt/indaga-auth:/deployments/config
+    extra_hosts:
+      - host.docker.internal:host-gateway
+  connector:
+    restart: always
+    image: "registry.itg.es/flythings-stack/flythings-dataspace/api-flythings-dataspace-connector:latest"
+    pull_policy: always
+    ports:
+      - "8980:8080"
+    volumes:
+      - /opt/indaga-dataspace-connector:/deployments/config
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    depends_on:
+      - auth

@@ -1,0 +1,30 @@
+<IfModule mod_rewrite.c>
+    Options +FollowSymLinks
+    IndexIgnore */*
+    RewriteEngine on
+    RemoveHandler .var
+
+    # Si es un archivo o directorio existente, úsalo directamente
+    RewriteCond %{REQUEST_FILENAME} -s [OR]
+    RewriteCond %{REQUEST_FILENAME} -l [OR]
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteCond %{REQUEST_URI} !/api
+    RewriteCond %{REQUEST_URI} !^/$
+    RewriteRule ^.*$ - [NC,L]
+
+    # Reglas de proxy para /auth/api, /connector/api
+    RewriteCond %{REQUEST_URI} ^/auth/api
+    RewriteRule ^auth/api/(.*)$ http://localhost:8080/api/$1 [P,L]
+    RewriteCond %{REQUEST_URI} ^/connector/api
+    RewriteRule ^connector/api/(.*)$ http://localhost:8980/api/$1 [P,L]
+
+    # Redirección de rutas principales con hash para SPA
+    RewriteCond %{REQUEST_URI} "^/auth"
+    RewriteRule ^(.*)$ /auth/#/$1 [NC,L]
+    RewriteCond %{REQUEST_URI} "^/connector"
+    RewriteRule ^(.*)$ /connector/#/$1 [NC,L]
+
+    # Redirigir la raíz a /auth/#/
+    RewriteCond %{REQUEST_URI} ^/$
+    RewriteRule (.*) /auth/#/$1 [R=301,L]
+</IfModule>

@@ -1,0 +1,115 @@
+server {
+  listen 8080;
+  server_name ${BASE_URL};
+
+  location = /healthz {
+    return 200 "ok\n";
+    add_header Content-Type text/plain;
+  }
+
+  location / {
+    return 301 https://\$host\$request_uri;
+  }
+}
+
+server {
+  listen 8443 ssl;
+  server_name ${BASE_URL};
+
+  ssl_certificate /etc/nginx/certs/tls.crt;
+  ssl_certificate_key /etc/nginx/certs/tls.key;
+  ssl_trusted_certificate /etc/nginx/certs/ca-bundle.crt;
+  ssl_protocols TLSv1.2 TLSv1.3;
+  ssl_session_cache shared:SSL:10m;
+  ssl_session_timeout 10m;
+  ssl_prefer_server_ciphers on;
+  ssl_ciphers HIGH:!aNULL:!MD5;
+
+  client_max_body_size 50m;
+
+  location = /${PARTICIPANT}/healthz {
+    return 200 "ok\n";
+    add_header Content-Type text/plain;
+  }
+
+  location ${NGINX_CP_PUBLIC_PATH}/api/dsp/ {
+    proxy_pass http://controlplane:7062/api/dsp/;
+    proxy_http_version 1.1;
+    proxy_set_header Host \$host;
+    proxy_set_header X-Real-IP \$remote_addr;
+    proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto \$scheme;
+  }
+
+  location ${NGINX_CP_PUBLIC_PATH}/api/control/ {
+    proxy_pass http://controlplane:7063/api/control/;
+    proxy_http_version 1.1;
+    proxy_set_header Host \$host;
+    proxy_set_header X-Real-IP \$remote_addr;
+    proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto \$scheme;
+  }
+
+  location ${NGINX_CP_PUBLIC_PATH}/api/catalog/ {
+    proxy_pass http://controlplane:7064/api/catalog/;
+    proxy_http_version 1.1;
+    proxy_set_header Host \$host;
+    proxy_set_header X-Real-IP \$remote_addr;
+    proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto \$scheme;
+  }
+
+  location ${NGINX_CP_PUBLIC_PATH}/api/management/ {
+    proxy_pass http://controlplane:7061/api/management/;
+    proxy_http_version 1.1;
+    proxy_set_header Host \$host;
+    proxy_set_header X-Real-IP \$remote_addr;
+    proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto \$scheme;
+  }
+
+  location ${NGINX_IH_PUBLIC_PATH}/api/identity/ {
+    proxy_pass http://identity-hub:7081/api/identity/;
+    proxy_http_version 1.1;
+    proxy_set_header Host \$host;
+    proxy_set_header X-Real-IP \$remote_addr;
+    proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto \$scheme;
+  }
+
+  location ${NGINX_IH_PUBLIC_PATH}/api/credentials/ {
+    proxy_pass http://identity-hub:7082/api/credentials/;
+    proxy_http_version 1.1;
+    proxy_set_header Host \$host;
+    proxy_set_header X-Real-IP \$remote_addr;
+    proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto \$scheme;
+  }
+
+  location ${NGINX_IH_PUBLIC_PATH}/api/sts/ {
+    proxy_pass http://identity-hub:7084/api/sts/;
+    proxy_http_version 1.1;
+    proxy_set_header Host \$host;
+    proxy_set_header X-Real-IP \$remote_addr;
+    proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto \$scheme;
+  }
+
+  location ${NGINX_DP_PUBLIC_PATH}/ {
+    proxy_pass http://dataplane:7052/api/public/;
+    proxy_http_version 1.1;
+    proxy_set_header Host \$host;
+    proxy_set_header X-Real-IP \$remote_addr;
+    proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto \$scheme;
+  }
+
+  location /${PARTICIPANT}/ {
+    proxy_pass http://identity-hub:7083/${PARTICIPANT}/;
+    proxy_http_version 1.1;
+    proxy_set_header Host \$host;
+    proxy_set_header X-Real-IP \$remote_addr;
+    proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto \$scheme;
+  }
+}

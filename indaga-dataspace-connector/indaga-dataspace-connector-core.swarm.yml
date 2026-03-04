@@ -1,0 +1,71 @@
+version: '3.8'
+
+x-deploy-common:
+  deploy:
+    &deploy-common
+    mode: replicated
+    update_config:
+      parallelism: 1
+      delay: 60s
+      failure_action: rollback
+      order: start-first
+    placement:
+      constraints:
+        - node.role != manager
+    restart_policy:
+      condition: on-failure
+      delay: 5s
+      max_attempts: 3
+      window: 120s
+
+services:
+  auth:
+    image: "registry.itg.es/flythings-stack/flythings-oauth/api-flythings-oauth:latest"
+    ports:
+      - "8080:8080"
+    configs:
+      - source: auth_properties
+        target: /deployments/config/application.properties
+      - source: auth_jwks
+        target: /deployments/config/jwks.json
+      - source: auth_private_key
+        target: /deployments/config/privateKey.pem
+      - source: auth_public_key
+        target: /deployments/config/publicKey.pem
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    networks:
+      - indaga
+    deploy:
+      <<: *deploy-common
+      replicas: 1
+  connector:
+    image: "registry.itg.es/flythings-stack/flythings-dataspace/api-flythings-dataspace-connector:latest"
+    ports:
+      - "8980:8080"
+    configs:
+      - source: connector_properties
+        target: /deployments/config/application.properties
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    networks:
+      - indaga
+    deploy:
+      <<: *deploy-common
+      replicas: 1
+
+configs:
+  auth_properties:
+    file: /opt/indaga-auth/application.properties
+  auth_jwks:
+    file: /opt/indaga-auth/jwks.json
+  auth_private_key:
+    file: /opt/indaga-auth/privateKey.pem
+  auth_public_key:
+    file: /opt/indaga-auth/publicKey.pem
+  connector_properties:
+    file: /opt/indaga-dataspace-connector/application.properties
+networks:
+  indaga:
+    driver: overlay
+    attachable: true
