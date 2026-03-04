@@ -5,9 +5,10 @@
 #### Install
 
 ```sh
-[ ! -d /opt/.indaga ] && mkdir /opt/indaga
+[ ! -d /opt/.indaga ] && mkdir /opt/.indaga
 cd /opt/.indaga
 cp /opt/.indaga-deploy/indaga-dataspace-connector/indaga-dataspace-connector-init.sh indaga-dataspace-connector-init.sh
+PARTICIPANT=<YOUR_EDC_PARTICIPANT>
 SERVICE_DNS=https://<YOUR_SERVICE_DNS>
 chmod +x indaga-dataspace-connector-init.sh && ./indaga-dataspace-connector-init.sh $SERVICE_DNS
 chmod +x indaga-dataspace-connector-init.sh && ./indaga-dataspace-connector-init.sh $SERVICE_DNS --nginx

@@ -15,9 +15,9 @@ This repository contains deployment assets for two component stacks used in the 
 
 ## Quick Start
 
-1. Download the repo with `curl -L https://github.com/datosindaga/indaga-connector-setup/archive/refs/heads/main.zip -o deploy.tar.gz`
-2. Unzip the content `tar -zxvf deploy.tar.gz && mv indaga-connector-setup-main*/ /opt/.indaga-deploy/`
-3. `rm -rf deploy.tar.gz`
+1. Download the repo with `curl -L https://github.com/datosindaga/indaga-connector-setup/archive/refs/heads/main.zip -o deploy.zip`
+2. Unzip the content `unzip deploy.zip && mv indaga-connector-setup-main/ /opt/.indaga-deploy/`
+3. `rm -rf deploy.zip`
 4. Choose the stack you want to deploy:
    - EDC participant connector: see [`edc-connector/README.md`](edc-connector/README.md), located in `/opt/.indaga-deploy/edc-connector/README.md`
    - Indaga core connector stack: see [`indaga-dataspace-connector/README.md`](indaga-dataspace-connector/README.md) located in `/opt/.indaga-deploy/indaga-dataspace-connector/README.md`

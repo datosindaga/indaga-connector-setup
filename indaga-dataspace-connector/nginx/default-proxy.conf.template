@@ -53,6 +53,10 @@ server {
         proxy_pass http://host.docker.internal:8980/;
     }
 
+    location /${PARTICIPANT}/ {
+        proxy_pass http://host.docker.internal:9080/${PARTICIPANT}/
+    }
+
     location = / {
         return 301 /auth/;
     }

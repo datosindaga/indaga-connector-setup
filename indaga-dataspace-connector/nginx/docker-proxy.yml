@@ -1,0 +1,16 @@
+version: "3.0"
+name: proxy
+services:
+  nginx:
+    image: nginx:1.29
+    ports:
+      - 80:80
+      - 443:443
+    restart: always
+    volumes:
+      - /opt/nginx/conf.d:/etc/nginx/conf.d
+      - /opt/nginx/ssl:/etc/nginx/ssl
+      - /opt/nginx/www:/var/www
+      - /opt/nginx/logs:/var/log/nginx
+    extra_hosts:
+      - host.docker.internal:host-gateway

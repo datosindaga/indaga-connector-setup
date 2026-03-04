@@ -40,7 +40,7 @@ set -- "${POSITIONAL[@]}"
 #####
 
 INDAGA_SERVICE_DNS=$1
-BASE_DEPLOY_DIR=/opt/.indaga/indaga-dataspace-connector
+BASE_DEPLOY_DIR=/opt/.indaga-deploy/indaga-dataspace-connector
 
 if [ -z "$NO_DBS" ]; then
     #########################################
@@ -150,6 +150,7 @@ if [ -z "$NO_PROXY" ]; then
     if [ -z "$NGINX" ]; then
         if [ -d /etc/httpd/ ] && [ ! -f /etc/httpd/conf.d/connector.indaga.io.conf ]; then
             cp $BASE_DEPLOY_DIR/httpd/connector.indaga.io.conf /etc/httpd/conf.d/connector.indaga.io.conf
+            sed -i "s#\${PARTICIPANT}#${PARTICIPANT}#" /etc/httpd/conf.d/connector.indaga.io.conf
             cd /etc/httpd/ssl.crt
         fi
         if [ -d /etc/apache2/ ] && [ ! -f /etc/apache2/sites-available/connector.indaga.io.conf ]; then
@@ -159,14 +160,27 @@ if [ -z "$NO_PROXY" ]; then
         fi
     else
         echo "Configuring NGINX"
+        if [ ! -d /opt/nginx ]; then
+            mkdir /opt/nginx
+            mkdir /opt/nginx/conf.d
+            mkdir /opt/nginx/templates
+            mkdir /opt/nginx/logs
+            mkdir /opt/nginx/ssl
+            mkdir /opt/nginx/www
+        fi
         export DOMAIN=$(echo "$INDAGA_SERVICE_DNS" | sed -E 's~https?://~~' | cut -d. -f2-)
         export SUBDOMAIN=$(echo "$INDAGA_SERVICE_DNS" | sed -E 's~https?://~~' | awk -F. '{print $1}')
         cp $BASE_DEPLOY_DIR/nginx/proxy.conf.template /opt/nginx/templates/proxy.conf.template
+        sed -i "s#\${PARTICIPANT}#${PARTICIPANT}#" /opt/nginx/templates/proxy.conf.template
         cp $BASE_DEPLOY_DIR/nginx/web.conf.template /opt/nginx/templates/web.conf.template
+        sed -i "s#\${PARTICIPANT}#${PARTICIPANT}#" /opt/nginx/templates/web.conf.template
         cp $BASE_DEPLOY_DIR/nginx/default-proxy.conf.template /opt/nginx/conf.d/default-server.conf
+        sed -i "s#\${PARTICIPANT}#${PARTICIPANT}#" /opt/nginx/conf.d/default-server.conf
         if [ "$DOMAIN" == "flythings.io" ]; then
             envsubst '$DOMAIN $SUBDOMAIN' < /opt/nginx/templates/proxy.conf.template > /opt/nginx/conf.d/${SUBDOMAIN}.${DOMAIN}.conf
         fi
+        [ ! -f /opt/nginx/docker-proxy.yml ] && cp $BASE_DEPLOY_DIR/nginx/docker-proxy.yml /opt/nginx/
+        [ -f /opt/nginx/docker-proxy.yml ] && docker compose -f /opt/nginx/docker-proxy.yml up -d
         cd /opt/nginx/ssl
         if [ "$DOMAIN" != "flythings.io" ]; then
             cat > flythings.io.ext <<EOF

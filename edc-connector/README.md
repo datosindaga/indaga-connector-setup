@@ -27,7 +27,13 @@ nano participant.env
 docker login registry.itg.es
 chmod +x setup.sh && ./setup.sh up
 ```
+After install, redirect your traffic from
 
+https://$BASE_URL/$PARTICIPANT 
+
+to
+
+http://localhost:9080/$PARTICIPANT
 
 ## Single Config File
 

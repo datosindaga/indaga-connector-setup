@@ -59,6 +59,9 @@ server {
         proxy_pass http://host.docker.internal:8980/api/;
     }
 
+    location /${PARTICIPANT}/ {
+        proxy_pass http://host.docker.internal:9080/${PARTICIPANT}/
+    }
     
 
     # ==================================================

@@ -166,14 +166,14 @@ generate_derived_env() {
     [[ "${NGINX_HTTP_HOST_PORT}" =~ ^[0-9]+$ ]] || die "NGINX_HTTP_HOST_PORT must be numeric in participant.env"
     nginx_http_h="${NGINX_HTTP_HOST_PORT}"
   else
-    nginx_http_h="80"
+    nginx_http_h="9080"
   fi
 
   if [[ -n "${NGINX_HTTPS_HOST_PORT}" ]]; then
     [[ "${NGINX_HTTPS_HOST_PORT}" =~ ^[0-9]+$ ]] || die "NGINX_HTTPS_HOST_PORT must be numeric in participant.env"
     nginx_https_h="${NGINX_HTTPS_HOST_PORT}"
   else
-    nginx_https_h="443"
+    nginx_https_h="9443"
   fi
 
   COMPOSE_PROJECT_NAME="${PARTICIPANT}"
