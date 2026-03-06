@@ -13,6 +13,7 @@ Example:
 #PARTICIPANT is the name of the participant generated, should be changed by a name containing no spaces nor puntuaction, and should be easily recognised, as it will be used to generate the credentials.
 PARTICIPANT=<YOUR_PARTICIPANT_NAME>
 mkdir -p /opt/indaga-edc/${PARTICIPANT}
+cd /opt/.indaga-deploy/edc-connector
 cp -R participant/* /opt/indaga-edc/${PARTICIPANT}/
 cd /opt/indaga-edc/${PARTICIPANT}
 # Modify the file according to your configuration (DNS, PARTICIPANT NAME)

@@ -22,9 +22,25 @@ rm -rf indaga-dataspace-connector-init.sh
   - --nginx (depends on --proxy to take effect)
   - --jwt-sign-key ES256 (Default ES256; options: RS256, ES256)
 
+
+After setup is finished:
+
+1. Review the properties files for each application:
+   - indaga-auth: /opt/indaga-auth/application.properties
+   nano /opt/indaga-auth/application.properties
+   - indaga-dataspace-connector: /opt/indaga-dataspace-connector/application.properties
+   nano /opt/indaga-dataspace-connector/application.properties
+
 - Configure .properties files
    - Token date in auth properties
-   - Token in connector properties
+
+- Run the app:
+
+```sh
+docker compose -f /opt/.indaga/indaga-dataspace-connector-core.yml up -d
+```
+
+- Replace the token in connector app, and restart:
 
 ```sh
     watch -n 2 docker ps -a
@@ -46,10 +62,11 @@ Example:
 PARTICIPANT=<YOUR EDC PARTICIPANT>
 SUBDOMAIN=<YOUR SUBDOMAIN>
 DOMAIN=<YOUR DOMAIN>
+cd /opt/.indaga-deploy/indaga-dataspace-connector
 cp nginx/proxy.conf.template /etc/nginx/conf.d/proxy.io.conf
-sed -i "s#\${PARTICIPANT}#${PARTICIPANT}#" /etc/nginx/templates/proxy.io.conf
-sed -i "s#\${SUBDOMAIN}#${SUBDOMAIN}#" /etc/nginx/templates/proxy.io.conf
-sed -i "s#\${DOMAIN}#${DOMAIN}#" /etc/nginx/templates/proxy.io.conf
+sed -i "s#\${PARTICIPANT}#${PARTICIPANT}#" /etc/nginx/conf.d/proxy.io.conf
+sed -i "s#\${SUBDOMAIN}#${SUBDOMAIN}#" /etc/nginx/conf.d/proxy.io.conf
+sed -i "s#\${DOMAIN}#${DOMAIN}#" /etc/nginx/conf.d/proxy.io.conf
 ```
 
 In the nginx `etc` folder must have a `ssl` folder with:
@@ -71,6 +88,7 @@ SUBDOMAIN=<YOUR SUBDOMAIN>
 DOMAIN=<YOUR DOMAIN>
 # Apache values are httpd/apache2
 APACHE=httpd
+cd /opt/.indaga-deploy/indaga-dataspace-connector
 cp httpd/connector.indaga.io.conf /etc/${APACHE}/conf.d/connector.indaga.io.conf
 sed -i "s#\${PARTICIPANT}#${PARTICIPANT}#" /etc/httpd/conf.d/connector.indaga.io.conf
 sed -i "s#\${SUBDOMAIN}#${SUBDOMAIN}#" /etc/httpd/conf.d/connector.indaga.io.conf
@@ -85,6 +103,7 @@ SUBDOMAIN=<YOUR SUBDOMAIN>
 DOMAIN=<YOUR DOMAIN>
 # Apache values are httpd/apache2
 APACHE=apache2
+cd /opt/.indaga-deploy/indaga-dataspace-connector
 cp httpd/connector.indaga.io.conf /etc/${APACHE}/sites-available/connector.indaga.io.conf
 sed -i "s#\${PARTICIPANT}#${PARTICIPANT}#" /etc/httpd/conf.d/connector.indaga.io.conf
 sed -i "s#\${SUBDOMAIN}#${SUBDOMAIN}#" /etc/httpd/conf.d/connector.indaga.io.conf
