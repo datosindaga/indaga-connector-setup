@@ -95,8 +95,8 @@ docker stack deploy --resolve-image "always" --compose-file=/opt/.indaga/indaga-
 
 ```sh
 cd /opt/.indaga
-docker compose -f indaga-dataspace-connector-databases.yml down
 docker compose -f indaga-dataspace-connector-core.yml down
+docker compose -f indaga-dataspace-connector-databases.yml down
 docker volume rm $(docker volume ls -q)
 rm -rf /opt/.indaga 
 rm -rf /opt/indaga-auth /opt/indaga-dataspace-connector
