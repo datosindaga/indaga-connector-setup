@@ -1,58 +1,44 @@
-# EDC Connector Template
+# Indaga EDC Connector
 
 This folder is a template for creating participant instances.
 
-## Registry Login
-
-Before pulling images, authenticate against the ITG registry:
-
-```bash
-docker login registry.itg.es
-```
 
 ## Workflow
 
 1. Copy `participant` manually once per connector instance.
-2. Manage each connector only from its own folder.
 
 Example:
 
 ```bash
-mkdir -p /opt/indaga-edc/acme
-cp -R participant/* /opt/indaga-edc/acme/
-cd /opt/indaga-edc/acme
-cp participant.env.example participant.env
+#PARTICIPANT is the name of the participant generated, should be changed by a name containing no spaces nor puntuaction, and should be easily recognised, as it will be used to generate the credentials.
+PARTICIPANT=<YOUR_PARTICIPANT_NAME>
+mkdir -p /opt/indaga-edc/${PARTICIPANT}
+cp -R participant/* /opt/indaga-edc/${PARTICIPANT}/
+cd /opt/indaga-edc/${PARTICIPANT}
 # Modify the file according to your configuration (DNS, PARTICIPANT NAME)
 nano participant.env
-docker login registry.itg.es
 chmod +x setup.sh && ./setup.sh up
 ```
 After install, redirect your traffic from
 
-https://$BASE_URL/$PARTICIPANT 
+`https://$BASE_URL/$PARTICIPANT`
 
 to
 
-http://localhost:9080/$PARTICIPANT
+`http://localhost:9080/$PARTICIPANT`
 
 ## Single Config File
 
 Edit only `participant.env`.
 
 ```env
-PARTICIPANT=acme
 BASE_URL=devdsconnector.indaga.io
-# Optional. Default is 80
-NGINX_HTTP_HOST_PORT=
-# Optional. Default is 443
-NGINX_HTTPS_HOST_PORT=
 TRUSTED_ISSUER_DID=did:web:cloud.datosindaga.com:issuer
 ```
 
 - TRUSTED_ISSUER_DID must be held as it is by default.
-- NGINX_HTTPS_HOST_PORT and NGINX_HTTP_HOST_PORT can be changed if it is wished to do so.
 - BASE_URL is the DNS Record pointing to the machine where Connector is deployed
-- PARTICIPANT is the name of the participant generated, should be changed by a name containing no spaces nor puntuaction, and should be easily recognised, as it will be used to generate the credentials.
+
 
 PostgreSQL, Vault, Control Plane, Data Plane and Identity Hub run internally in the Docker network.
 Public paths are fixed to `/cp`, `/ih`, and `/dp` for each participant instance.

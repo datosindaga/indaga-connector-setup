@@ -1,23 +1,23 @@
 # ======================================================
-# $SUBDOMAIN.$DOMAIN
+# ${SUBDOMAIN}.${DOMAIN}
 # ======================================================
 
 server {
     listen 80;
-    server_name $SUBDOMAIN.$DOMAIN www.$SUBDOMAIN.$DOMAIN;
+    server_name ${SUBDOMAIN}.${DOMAIN} www.${SUBDOMAIN}.${DOMAIN};
     return 301 https://$host$request_uri;
 }
 
 server {
     listen 443 ssl;
-    server_name $SUBDOMAIN.$DOMAIN www.$SUBDOMAIN.$DOMAIN;
+    server_name ${SUBDOMAIN}.${DOMAIN} www.${SUBDOMAIN}.${DOMAIN};
 
     client_max_body_size 10M;
 
     # --- SSL configuration ---
-    ssl_certificate     /etc/nginx/ssl/$DOMAIN.fullchain.crt;
-    ssl_certificate_key /etc/nginx/ssl/$DOMAIN.key;
-    ssl_trusted_certificate /etc/nginx/ssl/ca-bundle-$DOMAIN.crt;
+    ssl_certificate     /etc/nginx/ssl/${DOMAIN}.fullchain.crt;
+    ssl_certificate_key /etc/nginx/ssl/${DOMAIN}.key;
+    ssl_trusted_certificate /etc/nginx/ssl/ca-bundle-${DOMAIN}.crt;
 
     # --- SSL properties ---
     ssl_protocols TLSv1.2 TLSv1.3;
@@ -30,8 +30,8 @@ server {
     ssl_session_tickets off;
 
     # --- Logs ---
-    access_log /var/log/nginx/$SUBDOMAIN.$DOMAIN-access.log;
-    error_log  /var/log/nginx/$SUBDOMAIN.$DOMAIN-error.log warn;
+    access_log /var/log/nginx/${SUBDOMAIN}.${DOMAIN}-access.log;
+    error_log  /var/log/nginx/${SUBDOMAIN}.${DOMAIN}-error.log warn;
 
     # --- Proxy timeouts and headers ---
     proxy_http_version 1.1;

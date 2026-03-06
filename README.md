@@ -9,8 +9,9 @@ This repository contains deployment assets for two component stacks used in the 
 
 ## Prerequisites
 
-- Linux host with `docker` (with `docker compose`), `jq`, `curl`, `base64`
+- Linux host with `docker` (with `docker compose`), `jq`, `curl`, `base64`, `unzip`
 - Access to `registry.itg.es` (Docker registry credentials)
+  - `docker login registry.itg.es`
 - Permissions to create and manage files under `/opt` on the target host
 
 ## Quick Start
@@ -22,7 +23,7 @@ This repository contains deployment assets for two component stacks used in the 
    - EDC participant connector: see [`edc-connector/README.md`](edc-connector/README.md), located in `/opt/.indaga-deploy/edc-connector/README.md`
    - Indaga core connector stack: see [`indaga-dataspace-connector/README.md`](indaga-dataspace-connector/README.md) located in `/opt/.indaga-deploy/indaga-dataspace-connector/README.md`
 5. Follow the folder-specific setup steps and configuration notes.
-6. Validate services with Docker (`docker compose ps`, container logs, and exposed ports).
+6. Validate services with Docker (`docker compose ls`, container logs, and exposed ports).
 
 ## Notes
 

@@ -20,8 +20,8 @@ do
             NO_APPS=TRUE
             shift # past argument
         ;;
-        --no-proxy)
-            NO_PROXY=TRUE
+        --proxy)
+            PROXY=TRUE
             shift # past argument
         ;;
         --kwt-sign-key)
@@ -106,11 +106,11 @@ if [ -z "$NO_APPS" ]; then
     if [ ! -d /opt/indaga-auth ]; then
         mkdir /opt/indaga-auth && cd /opt/indaga-auth
         case "$JWT_SIGN_KEY" in
-            --ES256|ES256)
-                openssl req -x509 -newkey ec -pkeyopt ec_paramgen_curve:prime256v1 -nodes -keyout privateKey.pem -out publicKey.pem -subj "/C=ES/O=itg/CN=indaga"
-            ;;
-            --RS256|RS256|*)
+            --RS256|RS256)
                 openssl req -x509 -newkey rsa:2048 -nodes -keyout privateKey.pem -out publicKey.pem -subj "/C=ES/O=itg/CN=indaga"
+            ;;
+            --ES256|ES256|*)
+                openssl req -x509 -newkey ec -pkeyopt ec_paramgen_curve:prime256v1 -nodes -keyout privateKey.pem -out publicKey.pem -subj "/C=ES/O=itg/CN=indaga"
             ;;
         esac
         chmod 644 privateKey.pem
@@ -143,7 +143,7 @@ if [ -z "$NO_APPS" ]; then
     #########################################
 fi
 
-if [ -z "$NO_PROXY" ]; then
+if [ "$PROXY" = "TRUE" ]; then
     #########################################
     # Proxy Provision
     #########################################
@@ -155,6 +155,7 @@ if [ -z "$NO_PROXY" ]; then
         fi
         if [ -d /etc/apache2/ ] && [ ! -f /etc/apache2/sites-available/connector.indaga.io.conf ]; then
             cp $BASE_DEPLOY_DIR/httpd/connector.indaga.io.conf /etc/apache2/sites-available/connector.indaga.io.conf
+            sed -i "s#\${PARTICIPANT}#${PARTICIPANT}#" /etc/apache2/sites-available/connector.indaga.io.conf
             a2ensite connector.indaga.io
             cd /etc/apache2/ssl.crt
         fi
@@ -249,8 +250,6 @@ if [ -z "$NO_APPS" ]; then
 
 3. After editing the properties files, deploy the services:
    docker compose -f /opt/.indaga/indaga-dataspace-connector-core.yml up -d
-   or
-   docker stack deploy --resolve-image "always" --compose-file=/opt/.indaga/indaga-dataspace-connector.swarm.yml indaga-dataspace-connector --with-registry-auth
 
 4. Include Auth token in Flyapps properties and refresh services
     watch -n 2 docker ps -a
