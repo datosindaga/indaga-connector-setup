@@ -2,6 +2,41 @@
 
 ### Indaga Core
 
+#### Proxying the app for HTTPS
+
+1. Create neccesary variables:
+```sh
+export PARTICIPANT=<YOUR EDC PARTICIPANT>
+export SUBDOMAIN=<YOUR SUBDOMAIN>
+export DOMAIN=<YOUR DOMAIN>
+```
+2a. With nginx, use the /opt/.indaga-deploy/indaga-dataspace-connector/nginx/proxy.conf.template:
+```sh
+envsubst '$DOMAIN $SUBDOMAIN $PARTICIPANT' < /opt/.indaga-deploy/indaga-dataspace-connector/nginx/proxy.conf.template > <YOUR_NGINX_CONF_FOLDER>/${SUBDOMAIN}.${DOMAIN}.conf
+```
+2b. With Apache2, use the /opt/.indaga-deploy/indaga-dataspace-connector/httpd/connector.indaga.io.conf:
+```sh
+export APACHE="apache2"
+envsubst '$DOMAIN $SUBDOMAIN $PARTICIPANT $APACHE' < /opt/.indaga-deploy/indaga-dataspace-connector/httpd/connector.indaga.io.conf > <YOUR_APACHE2_CONF_FOLDER>/${SUBDOMAIN}.${DOMAIN}.conf
+```
+
+##### Apache
+
+The certs for the domain should exist:
+`${DOMAIN}.crt`: Domain certificate (/etc/$APACHE/ssl.crt/$DOMAIN.crt)
+`${DOMAIN}.key`: Domain key (/etc/$APACHE/ssl.crt/$DOMAIN.key)
+`ca-bundle-${DOMAIN}.crt`: CA certificate (/etc/$APACHE/ssl.crt/ca-bundle-${DOMAIN}.crt)
+If they are elsewhere, change the lines in `<YOUR_APACHE2_CONF_FOLDER>/${SUBDOMAIN}.${DOMAIN}.conf`
+
+##### NGINX
+
+The certs for the domain should exist:
+`${DOMAIN}.fullchain.crt`: Fullchain Domain certificate (/etc/nginx/ssl/${DOMAIN}.fullchain.crt)
+`${DOMAIN}.key`: Domain key (/etc/nginx/ssl/${DOMAIN}.key)
+`ca-bundle-${DOMAIN}.crt`: CA certificate (/etc/nginx/ssl/ca-bundle-${DOMAIN}.crt)
+
+If they are elsewhere those lines should be changed on `<YOUR_NGINX_CONF_FOLDER>/${SUBDOMAIN}.${DOMAIN}.conf`
+
 #### Install
 
 ```sh
@@ -49,74 +84,6 @@ docker compose -f /opt/.indaga/indaga-dataspace-connector-core.yml up -d
     sed -i "s#\\\${FLYTHINGS_AUTH_TOKEN}#\${TOKEN}#" /opt/indaga-dataspace-connector/application.properties
     docker restart indaga-core-connector-1 
 ```
-
-#### Proxying the app for HTTPS
-
-##### NGINX
-
-There is two site templates for NGINX inside `nginx/` with name `proxy.conf.template`. Replace the variables with its value.
-
-Example:
-
-```sh
-PARTICIPANT=<YOUR EDC PARTICIPANT>
-SUBDOMAIN=<YOUR SUBDOMAIN>
-DOMAIN=<YOUR DOMAIN>
-cd /opt/.indaga-deploy/indaga-dataspace-connector
-cp nginx/proxy.conf.template /etc/nginx/conf.d/proxy.io.conf
-sed -i "s#\${PARTICIPANT}#${PARTICIPANT}#" /etc/nginx/conf.d/proxy.io.conf
-sed -i "s#\${SUBDOMAIN}#${SUBDOMAIN}#" /etc/nginx/conf.d/proxy.io.conf
-sed -i "s#\${DOMAIN}#${DOMAIN}#" /etc/nginx/conf.d/proxy.io.conf
-```
-
-In the nginx `etc` folder must have a `ssl` folder with:
-`${DOMAIN}.fullchain.crt`: Fullchain Domain certificate
-`${DOMAIN}.key`: Domain key
-`ca-bundle-${DOMAIN}.crt`: CA certificate
-
-If they are elsewhere those lines should be changed on the template on `proxy.io.conf`and `web.io.conf`.
-
-##### Apache
-
-There is a site template for Apache/HTTPD inside `httpd` folder. Replace the variables with its value.
-
-Example for httpd:
-
-```sh
-PARTICIPANT=<YOUR EDC PARTICIPANT>
-SUBDOMAIN=<YOUR SUBDOMAIN>
-DOMAIN=<YOUR DOMAIN>
-# Apache values are httpd/apache2
-APACHE=httpd
-cd /opt/.indaga-deploy/indaga-dataspace-connector
-cp httpd/connector.indaga.io.conf /etc/${APACHE}/conf.d/connector.indaga.io.conf
-sed -i "s#\${PARTICIPANT}#${PARTICIPANT}#" /etc/httpd/conf.d/connector.indaga.io.conf
-sed -i "s#\${SUBDOMAIN}#${SUBDOMAIN}#" /etc/httpd/conf.d/connector.indaga.io.conf
-sed -i "s#\${DOMAIN}#${DOMAIN}#" /etc/httpd/conf.d/connector.indaga.io.conf
-sed -i "s#\${APACHE}#${APACHE}#" /etc/httpd/conf.d/connector.indaga.io.conf       
-```
-
-Example for apache2:
-
-```sh
-SUBDOMAIN=<YOUR SUBDOMAIN>
-DOMAIN=<YOUR DOMAIN>
-# Apache values are httpd/apache2
-APACHE=apache2
-cd /opt/.indaga-deploy/indaga-dataspace-connector
-cp httpd/connector.indaga.io.conf /etc/${APACHE}/sites-available/connector.indaga.io.conf
-sed -i "s#\${PARTICIPANT}#${PARTICIPANT}#" /etc/httpd/conf.d/connector.indaga.io.conf
-sed -i "s#\${SUBDOMAIN}#${SUBDOMAIN}#" /etc/httpd/conf.d/connector.indaga.io.conf
-sed -i "s#\${DOMAIN}#${DOMAIN}#" /etc/httpd/conf.d/connector.indaga.io.conf
-sed -i "s#\${APACHE}#${APACHE}#" /etc/httpd/conf.d/connector.indaga.io.conf       
-```
-
-In the httpd/apache2 `etc` folder must have a `ssl.crt` folder with:
-`${DOMAIN}.crt`: Domain certificate
-`${DOMAIN}.key`: Domain key
-`ca-bundle-${DOMAIN}.crt`: CA certificate
-
-If they are elsewhere those lines should be changed on the template on connector.indaga.io.conf
 
 #### Version update
 
