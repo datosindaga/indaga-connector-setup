@@ -1,7 +1,5 @@
 ## Indaga Deploy
 
-### Indaga Core
-
 #### Proxying the app for HTTPS
 
 1. Create neccesary variables:
@@ -19,37 +17,55 @@ envsubst '$DOMAIN $SUBDOMAIN $PARTICIPANT' < /opt/.indaga-deploy/indaga-dataspac
 export APACHE="apache2"
 envsubst '$DOMAIN $SUBDOMAIN $PARTICIPANT $APACHE' < /opt/.indaga-deploy/indaga-dataspace-connector/httpd/connector.indaga.io.conf > <YOUR_APACHE2_CONF_FOLDER>/${SUBDOMAIN}.${DOMAIN}.conf
 ```
+2c. With HTTPD, use the /opt/.indaga-deploy/indaga-dataspace-connector/httpd/connector.indaga.io.conf:
+```sh
+export APACHE="httpd"
+envsubst '$DOMAIN $SUBDOMAIN $PARTICIPANT $APACHE' < /opt/.indaga-deploy/indaga-dataspace-connector/httpd/connector.indaga.io.conf > <YOUR_APACHE2_CONF_FOLDER>/${SUBDOMAIN}.${DOMAIN}.conf
+```
+3a. Check SSL files with NGINX (<NGINX_FOLDER>/ssl):
+>    - `${DOMAIN}.fullchain.crt`: Fullchain Domain certificate
+>    - `${DOMAIN}.key`: Domain key
+>    - `ca-bundle-${DOMAIN}.crt`: CA certificate
 
-##### Apache
+3b. Check SSL files with Apache (<APACHE_FOLDER>/ssl.crt):
+>    - `${DOMAIN}.crt`: Domain certificate
+>    - `${DOMAIN}.key`: Domain key
+>    - `ca-bundle-${DOMAIN}.crt`: CA certificate
 
-The certs for the domain should exist:
-`${DOMAIN}.crt`: Domain certificate (/etc/$APACHE/ssl.crt/$DOMAIN.crt)
-`${DOMAIN}.key`: Domain key (/etc/$APACHE/ssl.crt/$DOMAIN.key)
-`ca-bundle-${DOMAIN}.crt`: CA certificate (/etc/$APACHE/ssl.crt/ca-bundle-${DOMAIN}.crt)
-If they are elsewhere, change the lines in `<YOUR_APACHE2_CONF_FOLDER>/${SUBDOMAIN}.${DOMAIN}.conf`
+4. Restart your proxy.
 
-##### NGINX
-
-The certs for the domain should exist:
-`${DOMAIN}.fullchain.crt`: Fullchain Domain certificate (/etc/nginx/ssl/${DOMAIN}.fullchain.crt)
-`${DOMAIN}.key`: Domain key (/etc/nginx/ssl/${DOMAIN}.key)
-`ca-bundle-${DOMAIN}.crt`: CA certificate (/etc/nginx/ssl/ca-bundle-${DOMAIN}.crt)
-
-If they are elsewhere those lines should be changed on `<YOUR_NGINX_CONF_FOLDER>/${SUBDOMAIN}.${DOMAIN}.conf`
 
 #### Install
 
+1. Prepare environment and deploy databases:
 ```sh
 [ ! -d /opt/.indaga ] && mkdir /opt/.indaga
 cd /opt/.indaga
 cp /opt/.indaga-deploy/indaga-dataspace-connector/indaga-dataspace-connector-init.sh indaga-dataspace-connector-init.sh
 #PARTICIPANT is the same as used in the edc-connector setup
-PARTICIPANT=<YOUR_EDC_PARTICIPANT>
-SERVICE_DNS=https://<YOUR_SERVICE_DNS>
+echo $PARTICIPANT
+echo $DOMAIN
+echo $SUBDOMAIN
+SERVICE_DNS=https://$SUBDOMAIN.$DOMAIN
 chmod +x indaga-dataspace-connector-init.sh && ./indaga-dataspace-connector-init.sh $SERVICE_DNS
 rm -rf indaga-dataspace-connector-init.sh
 ```
+2. Check all properties file are correctly configured.
+3. Launch compose connector up:
+```sh
+docker compose -f /opt/.indaga/indaga-dataspace-connector-core.yml up -d
+```
+4. Wait to auth connector is healthy and modify flyapp TOKEN in connector service:
+```sh
+watch -n 2 docker ps -a
+TOKEN=\`docker logs indaga-core-auth-1 | grep "TOKEN to Fly Apps generated" | awk -F': ' '{print \$NF}'\`
+echo \$TOKEN
+sed -i "s#\\\${FLYTHINGS_AUTH_TOKEN}#\${TOKEN}#" /opt/indaga-dataspace-connector/application.properties
+docker restart indaga-core-connector-1 
+```
+5. Save and remove the /opt/.indaga/.pass
 
+##### Options
 - indaga-dataspace-connector-init.sh options:
   - --no-databases
   - --no-apps
@@ -57,33 +73,7 @@ rm -rf indaga-dataspace-connector-init.sh
   - --nginx (depends on --proxy to take effect)
   - --jwt-sign-key ES256 (Default ES256; options: RS256, ES256)
 
-
-After setup is finished:
-
-1. Review the properties files for each application:
-   - indaga-auth: /opt/indaga-auth/application.properties
-   nano /opt/indaga-auth/application.properties
-   - indaga-dataspace-connector: /opt/indaga-dataspace-connector/application.properties
-   nano /opt/indaga-dataspace-connector/application.properties
-
-- Configure .properties files
-   - Token date in auth properties
-
-- Run the app:
-
-```sh
-docker compose -f /opt/.indaga/indaga-dataspace-connector-core.yml up -d
-```
-
-- Replace the token in connector app, and restart:
-
-```sh
-    watch -n 2 docker ps -a
-    TOKEN=\`docker logs indaga-core-auth-1 | grep "TOKEN to Fly Apps generated" | awk -F': ' '{print \$NF}'\`
-    echo \$TOKEN
-    sed -i "s#\\\${FLYTHINGS_AUTH_TOKEN}#\${TOKEN}#" /opt/indaga-dataspace-connector/application.properties
-    docker restart indaga-core-connector-1 
-```
+---
 
 #### Version update
 
