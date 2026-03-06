@@ -60,7 +60,7 @@ server {
     }
 
     location /${PARTICIPANT}/ {
-        proxy_pass http://host.docker.internal:9080/${PARTICIPANT}/
+        proxy_pass http://host.docker.internal:9080/${PARTICIPANT}/;
     }
     
 
