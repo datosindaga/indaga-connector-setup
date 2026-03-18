@@ -58,7 +58,7 @@ server {
     }
 
     location = / {
-        return 301 /auth/;
+        return 301 /connector/;
     }
 
 }

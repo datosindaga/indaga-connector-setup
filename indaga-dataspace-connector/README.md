@@ -75,6 +75,16 @@ docker restart indaga-core-connector-1
 
 ---
 
+#### Linking Indaga Dataspace Connector with the EDC
+
+After the installation, and after creating the first user. You need to Link Indaga Dataspace Connector with the EDC.
+
+1. Access with your user to the Indaga Dataspace Connector.
+2. Click on the "person" icon on the top of the sidebar and select "Connector Properties". ![](screenshots/sidebar.png)
+3. Fill the properties with the ones explained in the [EDC README](../edc-connector/README.md#configuration-values-for-the-dataspace-connector-app) ![](screenshots/properties.png)
+4. Click "Save".
+---
+
 #### Version update
 
 ##### Docker Compose
