@@ -628,6 +628,7 @@ render_nginx_config() {
   export NGINX_CP_PUBLIC_PATH="${cp_public_path}"
   export NGINX_IH_PUBLIC_PATH="${ih_public_path}"
   export NGINX_DP_PUBLIC_PATH="${dp_public_path}"
+  export NGINX_DP_BASE_PATH="$(url_to_path "${PUBLIC_DP_URL}")"
   export NGINX_DP_UPSTREAM_PATH="${dp_upstream_path}"
 
   local selected_template
