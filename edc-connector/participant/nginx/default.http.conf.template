@@ -72,8 +72,8 @@ server {
     proxy_set_header X-Forwarded-Proto \$scheme;
   }
 
-  location ${NGINX_DP_PUBLIC_PATH}/ {
-    proxy_pass http://dataplane:7052/api/public/;
+  location ${NGINX_DP_PUBLIC_PATH} {
+    proxy_pass http://dataplane:7052/api/public;
     proxy_http_version 1.1;
     proxy_set_header Host \$host;
     proxy_set_header X-Real-IP \$remote_addr;
