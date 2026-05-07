@@ -62,6 +62,7 @@ Commands:
   debug-open <svc> <target_port> [host_port]
                           Open socat tunnel from host to an internal service port
   debug-close [name|all]  Close one debug tunnel or all tunnels for this participant
+  update-edc              Pull new EDC images and recreate controlplane/dataplane/identity-hub only
   debug-list              List active debug tunnels for this participant
   down                    Stop connector and vault stacks and remove volumes
   status                  Show compose status for vault and connector
@@ -79,6 +80,7 @@ Examples:
   bash ./setup.sh debug-open controlplane 7060 17060
   bash ./setup.sh debug-list
   bash ./setup.sh debug-close all
+  bash ./setup.sh update-edc
 
 Notes:
   - participant.env must exist before running commands.
@@ -837,6 +839,20 @@ reload() {
   echo "Compose reconciliation done for controlplane, dataplane, identity-hub and nginx."
 }
 
+# Pull new EDC images and recreate only controlplane, dataplane and identity-hub.
+update_edc() {
+  generate_derived_env
+  load_effective_env 0
+  docker_ready
+
+  echo "Pulling EDC images..."
+  compose "edc.yml" pull controlplane dataplane identity-hub
+
+  echo "Recreating EDC containers..."
+  compose "edc.yml" up -d --no-deps --force-recreate controlplane dataplane identity-hub
+  echo "EDC update done: controlplane, dataplane, identity-hub recreated."
+}
+
 # Open a socat tunnel from host to an internal service/port for debugging.
 debug_open() {
   generate_derived_env
@@ -952,6 +968,7 @@ case "${ACTION}" in
   clean) clean ;;
   register) register ;;
   up) up ;;
+  update-edc|update) update_edc ;;
   reload) reload ;;
   debug-open|debug) debug_open ;;
   debug-list) debug_list ;;
